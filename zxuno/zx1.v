@@ -56,7 +56,6 @@ end
 
 wire [7:0] joy_0, joy_1;
 assign joy_0={2'b00,~joys[5:4],~joys[0],~joys[1],~joys[2],~joys[3]};
-assign joy_1=8'h00;
 
 
 //-------------------------------------------------------------------------------------------------
@@ -257,8 +256,8 @@ rom #(.KB(8), .FN("bios.hex")) Rom
 
 wire [14:0] cpu_ram_a;
 wire        ram_we_n, ram_ce_n;
-wire  [7:0] ram_di;
 wire  [7:0] ram_do;
+wire  [7:0] ram_di;
 
 wire [14:0] ram_a = (extram)            ? cpu_ram_a       :
                     (status[5:4] == 1)  ? cpu_ram_a[12:0] : // 8k
@@ -266,15 +265,6 @@ wire [14:0] ram_a = (extram)            ? cpu_ram_a       :
                     (sg1000)            ? cpu_ram_a[12:0] : // SGM means 8k on SG1000
                                           cpu_ram_a;        // SGM/32k
 
-ram #(16) ram 
-(
-	.clock(clk_sys),
-	.a(ram_a),
-	.ce (1'b1),
-	.we(ce_10m7 & ~(ram_we_n | ram_ce_n)),
-	.d(ram_do),
-	.q(ram_di)
-);
 
 wire [13:0] vram_a;
 wire        vram_we;
@@ -291,12 +281,7 @@ ram #(16) vram
 	.q    (vram_di)
 );
 
-wire [19:0] cart_a;
-wire  [7:0] cart_d = sramDQ;;
-wire        cart_rd;
 
-reg [5:0] cart_pages;
-always @(posedge clk_sys) if(ioctl_wr) cart_pages <= ioctl_addr[19:14];
 
 
 //-------------------------------------------------------------------------------------------------
@@ -311,7 +296,40 @@ always @(posedge clk_sys) begin
 		if(ioctl_addr[24:13] == 1 && sg1000) extram <= (!ioctl_addr[12:0] | extram) & &ioctl_dout; // 2000-3FFF on SG-1000
 	end
 end
+//-------------------------------------------------------------------------------------------------
 
+wire [18:0] cart_address = ioctl_download ? {1'b1,ioctl_addr[17:0]}: {1'b1,cart_a[17:0]};
+wire [19:0] cart_a;
+wire  [7:0] cart_d;
+wire        cart_rd;
+
+reg [5:0] cart_pages;
+always @(posedge clk_sys) if(ioctl_wr) cart_pages <= ioctl_addr[19:14];
+
+
+dpSRAM_5128 sram0
+(
+  .clk_i         (clk_sys),
+  .porta0_addr_i (cart_address),
+  .porta0_we_i   (ioctl_wr    ),
+  .porta0_ce_i   (ioctl_wr|cart_rd),
+  .porta0_oe_i   (cart_rd     ),
+  .porta0_data_i (ioctl_dout  ),
+  .porta0_data_o (cart_d      ),
+  
+  .porta1_addr_i ({4'b0000,ram_a[14:0]}),
+  .porta1_we_i   (ce_10m7 & ~ram_we_n ),
+  .porta1_ce_i   (~ram_ce_n),
+  .porta1_oe_i   (ram_we_n),
+  .porta1_data_i (ram_do),
+  .porta1_data_o (ram_di),
+  
+  .sram_addr_o  (sramA  ),
+  .sram_data_io (sramDQ ),
+  .sram_ce_n_o  (       ),
+  .sram_oe_n_o  (       ),
+  .sram_we_n_o  (sramWe)
+  );
 //-------------------------------------------------------------------------------------------------
 
 wire [1:0] ctrl_p1;
@@ -380,11 +398,6 @@ cv_console console
 	.audio_o(audio)
 );
 
-//-------------------------------------------------------------------------------------------------
-
-assign sramWe = !ioctl_wr;
-assign sramDQ = sramWe ? 8'bZ : ioctl_dout;
-assign sramA = ioctl_download ? ioctl_addr : cart_a;
 
 //-------------------------------------------------------------------------------------------------
 
@@ -406,12 +419,12 @@ mist_video #(.OSD_X_OFFSET(10), .OSD_Y_OFFSET(10), .OSD_COLOR(4)) mist_video(
 	.VGA_B        (TMP_B     ),
 	.VGA_VS       (VGA_VS    ),
 	.VGA_HS       (VGA_HS    ),
-	.ce_divider   (1'b0       ),
+	.ce_divider   (1'b0      ),
 	.scandoubler_disable  (scandoubler_disable	),
 	.scanlines    (forced_scandoubler ? 2'b00 : {status[9:7] == 3, status[9:7] == 2}),
 	.no_csync     (           ),
 	
-	.ypbpr        (ypbpr      )
+	.ypbpr        (1'b0       )
 	);
 	
 
@@ -445,7 +458,7 @@ always @(posedge clk_sys) begin : keypad_emulation
 			'hX46: btn_9     <= pressed; // 9
 			'hX45: btn_0     <= pressed; // 0
 
-			'hX69: btn_1     <= pressed; // 1
+/*			'hX69: btn_1     <= pressed; // 1
 			'hX72: btn_2     <= pressed; // 2
 			'hX7A: btn_3     <= pressed; // 3
 			'hX6B: btn_4     <= pressed; // 4
@@ -455,11 +468,18 @@ always @(posedge clk_sys) begin : keypad_emulation
 			'hX75: btn_8     <= pressed; // 8
 			'hX7D: btn_9     <= pressed; // 9
 			'hX70: btn_0     <= pressed; // 0
-
+*/
 			'hX7C: btn_star  <= pressed; // *
 			'hX59: btn_shift <= pressed; // Right Shift
 			'hX12: btn_shift <= pressed; // Left Shift
 			'hX7B: btn_minus <= pressed; // - on keypad
+			
+			'hX74: btn_right <= pressed; // ->
+			'hX6B: btn_left  <= pressed; // <- 
+			'hX75: btn_up    <= pressed; // ^ 
+			'hX72: btn_down  <= pressed; // v 
+			'hX1A: btn_fire1  <= pressed; // Z
+			'hX22: btn_fire2  <= pressed; // X
 
 
 		endcase
@@ -481,12 +501,20 @@ reg btn_star = 0;
 reg btn_shift = 0;
 reg btn_minus = 0;
 
+reg btn_right = 0;
+reg btn_left  = 0;
+reg btn_up    = 0;
+reg btn_down  = 0;
+reg btn_fire1  = 0;
+reg btn_fire2  = 0;
+
+assign joy_1={2'b00,btn_fire2,btn_fire1,btn_right,btn_left,btn_down,btn_up};
 
 //-------------------------------------------------------------------------------------------------
 
 wire [0:19] keypad0 = {joya[8],joya[9],joya[10],joya[11],joya[12],joya[13],joya[14],joya[15],joya[16],joya[17],joya[6],joya[7],joya[18],joya[19],joya[3],joya[2],joya[1],joya[0],joya[4],joya[5]};
-wire [0:19] keypad1 = {joyb[8],joyb[9],joyb[10],joyb[11],joyb[12],joyb[13],joyb[14],joyb[15],joyb[16],joyb[17],joyb[6],joyb[7],joyb[18],joyb[19],joyb[3],joyb[2],joyb[1],joyb[0],joyb[4],joyb[5]};
-wire [0:19] keyboardemu = { btn_0, btn_1, btn_2, btn_3, btn_4, btn_5, btn_6, btn_7, btn_8, btn_9, btn_star | (btn_8&btn_shift), btn_minus | (btn_shift & btn_3), 8'b0};
+wire [0:19] keypad1 =     {joyb[8],joyb[9],joyb[10],joyb[11],joyb[12],joyb[13],joyb[14],joyb[15],joyb[16],joyb[17],joyb[6]                      ,joyb[7]                         ,joyb[18],joyb[19],joyb[3] ,joyb[2] ,joyb[1]  ,joyb[0] ,joyb[4] ,joyb[5]};
+wire [0:19] keyboardemu = { btn_0 , btn_1 , btn_2  , btn_3  , btn_4  , btn_5  , btn_6  , btn_7  , btn_8  , btn_9  , btn_star | (btn_8&btn_shift), btn_minus | (btn_shift & btn_3), 8'b0};
 wire [0:19] keypad[2:0];
 assign keypad[0] = keypad0|keyboardemu;
 assign keypad[1] = keypad1|keyboardemu;
