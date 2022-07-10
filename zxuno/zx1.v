@@ -232,11 +232,11 @@ always @(posedge clk_sys) begin : reset_soft
 end
 
 wire hard_reset = status[1]|(ctrl&alt&bs);
-multiboot multiboot
+
+multiboot #(.ADDR(24'h058000)) Multiboot
 (
- .reset_i  (reset  ),
- .clock_i  (ce_10m7),
- .start_i  (hard_reset)
+	.clock(ce_10m7),
+	.boot(hard_reset)
 );
 
 ////////////////  Console  ////////////////////////

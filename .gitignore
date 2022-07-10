@@ -45,3 +45,6 @@ test-versions/
 traces/
 *.asm
 *.o
+ipcore_dir/
+iseconfig/
+tmp/

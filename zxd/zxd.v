@@ -133,7 +133,8 @@ parameter CONF_STR = {
 	"O79,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%;",
 	"O3,Joysticks swap,No,Yes;",
 	"O45,RAM Size,1KB,8KB,SGM;",
-	"T0,Reset;",
+	"T0,Reset ColecoVision;",
+	"T1,Reset ZxDOS+;",
 	"V,V1.0;"
 };
 
@@ -148,7 +149,7 @@ assign joy0={joy_0[7:4],joy_0[0],joy_0[1],joy_0[2],joy_0[3]};
 assign joy1={joy_1[7:4],joy_1[0],joy_1[1],joy_1[2],joy_1[3]};
 
 
-user_io #(.STRLEN(160), .SD_IMAGES(1)) user_io
+user_io #(.STRLEN(1512>>3), .SD_IMAGES(1)) user_io
 (
 	.conf_str      (CONF_STR),
 	.conf_chr      (        ),
@@ -237,7 +238,23 @@ data_io data_io
 );
 /////////////////  RESET  /////////////////////////
 
-wire reset =  status[0] | ioctl_download;
+wire keyb_reset = (ctrl&alt&del);
+
+reg reset;
+always @(posedge clk_sys) begin : reset_soft
+   reg [1:0] old_mem;
+	old_mem <= status[5:4];
+	reset <= (status[0] | old_mem != status[5:4] | keyb_reset | ioctl_download);
+end
+
+wire hard_reset = status[1]|(ctrl&alt&bs);
+
+multiboot #(.ADDR(24'hB0000)) Multiboot
+(
+	.clock(ce_10m7),
+	.boot(hard_reset)
+);
+
 ////////////////  Console  ////////////////////////
 
 wire [13:0] audio;
@@ -462,7 +479,7 @@ always @(posedge clk_sys) begin : keypad_emulation
 			'hX46: btn_9     <= pressed; // 9
 			'hX45: btn_0     <= pressed; // 0
 
-			'hX69: btn_1     <= pressed; // 1
+/*			'hX69: btn_1     <= pressed; // 1
 			'hX72: btn_2     <= pressed; // 2
 			'hX7A: btn_3     <= pressed; // 3
 			'hX6B: btn_4     <= pressed; // 4
@@ -472,16 +489,31 @@ always @(posedge clk_sys) begin : keypad_emulation
 			'hX75: btn_8     <= pressed; // 8
 			'hX7D: btn_9     <= pressed; // 9
 			'hX70: btn_0     <= pressed; // 0
-
+*/
 			'hX7C: btn_star  <= pressed; // *
 			'hX59: btn_shift <= pressed; // Right Shift
 			'hX12: btn_shift <= pressed; // Left Shift
 			'hX7B: btn_minus <= pressed; // - on keypad
-
-
+			
+			'hX74: btn_right <= pressed; // ->
+			'hX6B: btn_left  <= pressed; // <- 
+			'hX75: btn_up    <= pressed; // ^ 
+			'hX72: btn_down  <= pressed; // v 
+			'hX1A: btn_fire1  <= pressed; // Z
+			'hX22: btn_fire2  <= pressed; // X
+			
+	      'hX71: del       <= pressed;
+		   'hX11: alt       <= pressed;
+		   'hX14: ctrl      <= pressed;
+         'hX66: bs        <= pressed;
 		endcase
 	end
 end
+
+reg bs    = 0;
+reg del   = 0;
+reg alt   = 0;
+reg ctrl  = 0;
 
 reg btn_1 = 0;
 reg btn_2 = 0;
@@ -497,6 +529,13 @@ reg btn_0 = 0;
 reg btn_star = 0;
 reg btn_shift = 0;
 reg btn_minus = 0;
+
+reg btn_right = 0;
+reg btn_left  = 0;
+reg btn_up    = 0;
+reg btn_down  = 0;
+reg btn_fire1  = 0;
+reg btn_fire2  = 0;
 
 
 //-------------------------------------------------------------------------------------------------
