@@ -21,7 +21,7 @@
     </file>
     <file xil_pn:name="../src/ctrl/controller_rom.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="11"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="50"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="49"/>
     </file>
     <file xil_pn:name="../src/ctrl/controller_rom1_byte.v" xil_pn:type="FILE_VERILOG">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="12"/>
@@ -37,35 +37,31 @@
     </file>
     <file xil_pn:name="../src/ctrl/interrupt_controller.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="15"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="49"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="48"/>
     </file>
     <file xil_pn:name="../src/ctrl/io_ps2_com.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="16"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="48"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="47"/>
     </file>
     <file xil_pn:name="../src/ctrl/jtag_uart.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="17"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="47"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="46"/>
     </file>
     <file xil_pn:name="../src/ctrl/simple_uart.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="18"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="46"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="45"/>
     </file>
     <file xil_pn:name="../src/ctrl/spi_controller.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="19"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="45"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="44"/>
     </file>
     <file xil_pn:name="../src/ctrl/substitute_mcu.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="20"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="62"/>
     </file>
-    <file xil_pn:name="../src/ctrl/timer_controller.vhd" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="21"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="44"/>
-    </file>
     <file xil_pn:name="../src/832/debug_bridge_jtag.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="22"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="52"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="51"/>
     </file>
     <file xil_pn:name="../src/832/debug_fifo_altera.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="23"/>
@@ -89,7 +85,7 @@
     </file>
     <file xil_pn:name="../src/832/eightthirtytwo_cpu.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="28"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="51"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="50"/>
     </file>
     <file xil_pn:name="../src/832/eightthirtytwo_debug.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="29"/>
@@ -273,6 +269,10 @@
     <file xil_pn:name="dpSRAM_5128.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="122"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="54"/>
+    </file>
+    <file xil_pn:name="multiboot.vhd" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="124"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="52"/>
     </file>
     <file xil_pn:name="ipcore_dir/clock.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>

@@ -118,9 +118,11 @@ parameter CONF_STR = {
 	"O79,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%;",
 	"O3,Joysticks swap,No,Yes;",
 	"O45,RAM Size,1KB,8KB,SGM;",
-	"T0,Reset;",
+	"T0,Reset ColecoVision;",
+	"T1,Reset ZxUno;",
 	"V,V1.0;"
 };
+
 
 wire[63:0] status;
 wire scandoubler_disable;
@@ -132,7 +134,7 @@ wire state;
 assign joy0={joy_0[7:4],joy_0[0],joy_0[1],joy_0[2],joy_0[3]};
 assign joy1={joy_1[7:4],joy_1[0],joy_1[1],joy_1[2],joy_1[3]};
 
-user_io #(.STRLEN(160), .SD_IMAGES(1)) user_io
+user_io #(.STRLEN(1504>>3), .SD_IMAGES(1)) user_io
 (
 	.conf_str      (CONF_STR),
 	.conf_chr      (        ),
@@ -220,8 +222,23 @@ data_io data_io
 	.ioctl_filesize(                 )
 );
 /////////////////  RESET  /////////////////////////
+wire keyb_reset = (ctrl&alt&del);
 
-wire reset =  status[0] | ioctl_download ;
+reg reset;
+always @(posedge clk_sys) begin : reset_soft
+   reg [1:0] old_mem;
+	old_mem <= status[5:4];
+	reset <= (status[0] | old_mem != status[5:4] | keyb_reset | ioctl_download);
+end
+
+wire hard_reset = status[1]|(ctrl&alt&bs);
+multiboot multiboot
+(
+ .reset_i  (reset  ),
+ .clock_i  (ce_10m7),
+ .start_i  (hard_reset)
+);
+
 ////////////////  Console  ////////////////////////
 
 wire [13:0] audio;
@@ -230,14 +247,14 @@ assign DAC_R = {audio,2'd0};
 
 dac #(14) dac_l (
    .clk_i        (clk_sys),
-   .res_n_i      (1      ),
+   .res_n_i      (1'b1   ),
    .dac_i        (audio  ),
    .dac_o        (AUDIO_L)
 );
 
 dac #(14) dac_r (
    .clk_i        (clk_sys),
-   .res_n_i      (1      ),
+   .res_n_i      (1'b1   ),
    .dac_i        (audio  ),
    .dac_o        (AUDIO_R)
 );
@@ -422,9 +439,9 @@ mist_video #(.OSD_X_OFFSET(10), .OSD_Y_OFFSET(10), .OSD_COLOR(4)) mist_video(
 	.ce_divider   (1'b0      ),
 	.scandoubler_disable  (scandoubler_disable	),
 	.scanlines    (forced_scandoubler ? 2'b00 : {status[9:7] == 3, status[9:7] == 2}),
-	.no_csync     (           ),
+	.no_csync     (          ),
 	
-	.ypbpr        (1'b0       )
+	.ypbpr        (ypbpr     )
 	);
 	
 
@@ -480,11 +497,19 @@ always @(posedge clk_sys) begin : keypad_emulation
 			'hX72: btn_down  <= pressed; // v 
 			'hX1A: btn_fire1  <= pressed; // Z
 			'hX22: btn_fire2  <= pressed; // X
-
-
+			
+	      'hX71: del       <= pressed;
+		   'hX11: alt       <= pressed;
+		   'hX14: ctrl      <= pressed;
+         'hX66: bs        <= pressed;
 		endcase
 	end
 end
+
+reg bs    = 0;
+reg del   = 0;
+reg alt   = 0;
+reg ctrl  = 0;
 
 reg btn_1 = 0;
 reg btn_2 = 0;
@@ -507,6 +532,8 @@ reg btn_up    = 0;
 reg btn_down  = 0;
 reg btn_fire1  = 0;
 reg btn_fire2  = 0;
+
+
 
 assign joy_1={2'b00,btn_fire2,btn_fire1,btn_right,btn_left,btn_down,btn_up};
 
@@ -586,7 +613,7 @@ endgenerate
 
 
 //-------------------------------------------------------------------------------------------------
-
+//-------------------------------------------------------------------------------------------------
 assign led =ioctl_download;
 assign VGA_NTSC=1'b1;
 assign VGA_PAL=1'b0;

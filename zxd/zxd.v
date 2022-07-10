@@ -37,7 +37,6 @@ module zxd
 
 //-------------------------------------------------------------------------------------------------
 
-
 wire clk_sys;
 
 clock clock
@@ -148,6 +147,7 @@ wire state;
 assign joy0={joy_0[7:4],joy_0[0],joy_0[1],joy_0[2],joy_0[3]};
 assign joy1={joy_1[7:4],joy_1[0],joy_1[1],joy_1[2],joy_1[3]};
 
+
 user_io #(.STRLEN(160), .SD_IMAGES(1)) user_io
 (
 	.conf_str      (CONF_STR),
@@ -246,14 +246,14 @@ assign DAC_R = {audio,2'd0};
 
 dac #(14) dac_l (
    .clk_i        (clk_sys),
-   .res_n_i      (1      ),
+   .res_n_i      (1'b1      ),
    .dac_i        (audio  ),
    .dac_o        (AUDIO_L)
 );
 
 dac #(14) dac_r (
    .clk_i        (clk_sys),
-   .res_n_i      (1      ),
+   .res_n_i      (1'b1      ),
    .dac_i        (audio  ),
    .dac_o        (AUDIO_R)
 );
